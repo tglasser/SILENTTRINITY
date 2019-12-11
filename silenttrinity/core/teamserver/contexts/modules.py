@@ -51,11 +51,7 @@ class Modules(Loader):
 
     def run(self, guids):
         for guid in guids:
-<<<<<<< HEAD:core/teamserver/contexts/modules.py
-            ipc_server.publish_event(events.NEW_JOB, (guid, Job(module=self.selected)))
-=======
             ipc_server.publish_event(Events.NEW_JOB, (guid, Job(module=self.selected)))
->>>>>>> 239e4fcf5f821b00057909109a59f24a9322359f:silenttrinity/core/teamserver/contexts/modules.py
 
     def reload(self):
         self.get_loadables()
