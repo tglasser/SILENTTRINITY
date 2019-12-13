@@ -255,14 +255,20 @@ class STShell:
                 await asyncio.sleep(1) 
                 await self.run_resource_file(self.args['--resource-file'])
 
+        i=0
+        Commands=["listeners", "use https", "set BindIp 127.0.0.1","set Port 9998", "start", "list"]
+        await asyncio.sleep(3)
         while True:
             with patch_stdout():
-                text = await self.prompt_session.prompt(async_=True)
+                if i<len(Commands):
+                    text=Commands[i]
+                else:
+                    text = await self.prompt_session.prompt(async_=True)
                 if len(text):
                     if text.lower() == 'exit':
                         break
-
                     await self.parse_command_line(text)
+                    i+=1
 
     @command
     def help(self):
